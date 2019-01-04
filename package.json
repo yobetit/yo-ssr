@@ -1,0 +1,40 @@
+{
+  "name": "yo-ssr",
+  "version": "1.0.0",
+  "description": "Server Side Rendering lib using puppeteer to crawl cra 2 builded app",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yobetit/yo-ssr.git"
+  },
+  "keywords": [
+    "ssr",
+    "react",
+    "cra",
+    "create-react-app",
+    "yobetit",
+    "yo",
+    "server",
+    "side",
+    "render",
+    "spa",
+    "puppeteer",
+    "crawl",
+    "build"
+  ],
+  "author": "yobetit.com",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/yobetit/yo-ssr/issues"
+  },
+  "homepage": "https://github.com/yobetit/yo-ssr#readme",
+  "dependencies": {
+    "chalk": "^2.4.1",
+    "fs-path": "^0.0.24",
+    "jsdom": "^13.1.0",
+    "puppeteer": "^1.11.0"
+  }
+}
