@@ -1,5 +1,5 @@
 {
-  "name": "yo-ssr",
+  "name": "@yobetit/yo-ssr",
   "version": "1.0.0",
   "description": "Server Side Rendering lib using puppeteer to crawl cra 2 builded app",
   "main": "index.js",
@@ -33,8 +33,28 @@
   "homepage": "https://github.com/yobetit/yo-ssr#readme",
   "dependencies": {
     "chalk": "^2.4.1",
+    "express": "^4.16.4",
     "fs-path": "^0.0.24",
     "jsdom": "^13.1.0",
+    "prettier": "^1.15.3",
     "puppeteer": "^1.11.0"
+  },
+  "bin": {
+    "yo-ssr": "./index.js"
+  },
+  "devDependencies": {
+    "husky": "^1.3.1",
+    "lint-staged": "^8.1.0"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  },
+  "lint-staged": {
+    "*.{js,json,css,md}": [
+      "prettier --write",
+      "git add"
+    ]
   }
 }
