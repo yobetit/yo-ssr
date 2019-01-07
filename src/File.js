@@ -7,7 +7,8 @@ class File {
   static saveContent(url, html, ext = "html") {
     let file = url.replace(Options.getBaseUrl(), "");
     file = file[file.length - 1] === "/" ? `${file}index` : file;
-    file = path.join(Options.getBuildPath(), `${file}.${ext}`);
+
+    file = path.join(Options.getBuildPath(), `${file}/index.${ext}`);
 
     try {
       fsPath.writeFileSync(file, html);
