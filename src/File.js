@@ -6,9 +6,13 @@ const Logger = require("./Logger");
 class File {
   static saveContent(url, html, ext = "html") {
     let file = url.replace(Options.getBaseUrl(), "");
-    file = file[file.length - 1] === "/" ? file : `${file}/`;
 
-    file = path.join(Options.getBuildPath(), `${file}index.${ext}`);
+    if (ext === "html") {
+      file = file[file.length - 1] === "/" ? file : `${file}/`;
+      file = path.join(Options.getBuildPath(), `${file}index.${ext}`);
+    } else {
+      file = path.join(Options.getBuildPath(), `${file}.${ext}`);
+    }
 
     try {
       fsPath.writeFileSync(file, html);
