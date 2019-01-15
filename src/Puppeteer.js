@@ -27,14 +27,14 @@ class Puppeteer {
       return;
     }
 
-    await page.setUserAgent("Yo-SSR");
-
     let page;
     try {
       page = await browser.newPage();
     } catch (error) {
       Logger.error("error on opening new page", error);
     }
+
+    await page.setUserAgent("Yo-SSR");
 
     if (Options.get("showConsole")) {
       page.on("console", message => Logger.warning(message.text()));
