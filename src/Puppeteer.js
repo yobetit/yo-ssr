@@ -27,6 +27,8 @@ class Puppeteer {
       return;
     }
 
+    await page.setUserAgent("Yo-SSR");
+
     let page;
     try {
       page = await browser.newPage();

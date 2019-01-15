@@ -1,6 +1,6 @@
 {
   "name": "@yobetit/yo-ssr",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Server Side Rendering lib using puppeteer to crawl cra 2 builded app",
   "main": "index.js",
   "scripts": {
