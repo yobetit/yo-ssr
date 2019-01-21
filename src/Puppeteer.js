@@ -78,6 +78,8 @@ class Puppeteer {
             link = link.slice(0, -1);
           }
 
+          if (link === "") return prodUrl;
+
           return `${prodUrl}${link}.html`;
         })
         .join("\n");
