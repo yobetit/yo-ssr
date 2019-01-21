@@ -7,12 +7,13 @@ class File {
   static saveContent(url, html, ext = "html") {
     let file = url.replace(Options.getBaseUrl(), "");
 
-    if (ext === "html") {
-      file = file[file.length - 1] === "/" ? file : `${file}/`;
-      file = path.join(Options.getBuildPath(), `${file}index.${ext}`);
+    if (file === "/") {
+      file = `${file}index`;
     } else {
-      file = path.join(Options.getBuildPath(), `${file}.${ext}`);
+      file = file[file.length - 1] === "/" ? file.slice(0, -1) : file;
     }
+
+    file = path.join(Options.getBuildPath(), `${file}.${ext}`);
 
     try {
       fsPath.writeFileSync(file, html);
