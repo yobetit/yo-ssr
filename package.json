@@ -37,7 +37,9 @@
     "fs-path": "^0.0.24",
     "jsdom": "^13.1.0",
     "prettier": "^1.15.3",
-    "puppeteer": "^1.11.0"
+    "puppeteer": "^1.11.0",
+    "react": "^16.7.0",
+    "react-router": "^4.3.1"
   },
   "bin": {
     "yo-ssr": "./index.js"
