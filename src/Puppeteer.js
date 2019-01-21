@@ -1,6 +1,7 @@
 const jsdom = require("jsdom");
 const fsPath = require("fs-path");
 const puppeteer = require("puppeteer");
+const { matchPath } = require("react-router");
 const Options = require("./Options");
 const Logger = require("./Logger");
 const File = require("./File");
@@ -10,7 +11,13 @@ const crawledUrls = {};
 const allLinks = { "/": true };
 const waitFor = Options.get("waitFor");
 const baseurl = Options.getBaseUrl();
+const include = Options.get("include");
 let linksLength = 1;
+let pageHook;
+let linksHook;
+
+if (Options.get("pageHook")) pageHook = require(Options.getPageHook());
+if (Options.get("linksHook")) linksHook = require(Options.getLinksHook());
 
 class Puppeteer {
   static async startCrawler() {
@@ -34,6 +41,8 @@ class Puppeteer {
       Logger.error("error on opening new page", error);
     }
 
+    const viewport = Options.get("viewport");
+    if (viewport) await page.setViewport(viewport);
     await page.setUserAgent("Yo-SSR");
 
     if (Options.get("showConsole")) {
@@ -73,7 +82,7 @@ class Puppeteer {
     }
   }
 
-  static async recursivelyCrawl(browser, page, url) {
+  static async crawl(browser, page, url) {
     Logger.info("going to", url);
 
     try {
@@ -97,6 +106,33 @@ class Puppeteer {
 
     File.saveContent(url, html);
     const links = Puppeteer.getAllLinks(html);
+
+    return { html, links };
+  }
+
+  static async recursivelyCrawl(browser, page, url) {
+    let { html, links } = await Puppeteer.crawl(browser, page, url);
+
+    if (Options.get("pageHook")) {
+      await pageHook(page, html, url, {
+        Logger,
+        Options,
+        Puppeteer,
+        JSDOM,
+        browser
+      });
+      Logger.info("page hook executed");
+    }
+
+    if (Options.get("linksHook")) {
+      links = await linksHook(links, html, url, {
+        Logger,
+        Options,
+        Puppeteer,
+        JSDOM,
+        browser
+      });
+    }
 
     if (links) {
       linksLength += links.length;
@@ -138,16 +174,27 @@ class Puppeteer {
   }
 
   static isHrefValid(href) {
-    const include = Options.get("include");
-
     return (
       href &&
       !href.includes("http") &&
       !href.includes("mailto") &&
       !href.includes("tel") &&
       !href.includes("#") &&
-      (href === "/" || include.some(inc => href.startsWith(inc)))
+      (href === "/" || Puppeteer.matchUrl(href))
     );
+  }
+
+  static matchUrl(url) {
+    return include.some(inc => {
+      let props;
+      if (typeof inc === "string") {
+        props = { path: inc, exact: true };
+      } else {
+        props = inc;
+      }
+
+      return matchPath(url, props);
+    });
   }
 }
 
