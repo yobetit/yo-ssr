@@ -73,7 +73,7 @@ class Puppeteer {
 
       const allUrls = Object.keys(allLinks)
         .concat(Options.get("sitemapUrls"))
-        .map(link => `${prodUrl}${link}`)
+        .map(link => `${prodUrl}${link}.html`)
         .join("\n");
 
       File.saveContent("/sitemap", allUrls, "txt");
@@ -113,25 +113,22 @@ class Puppeteer {
   static async recursivelyCrawl(browser, page, url) {
     let { html, links } = await Puppeteer.crawl(browser, page, url);
 
+    const helpers = {
+      Logger,
+      Options,
+      Puppeteer,
+      JSDOM,
+      browser,
+      allLinks
+    };
+
     if (Options.get("pageHook")) {
-      await pageHook(page, html, url, {
-        Logger,
-        Options,
-        Puppeteer,
-        JSDOM,
-        browser
-      });
+      await pageHook(page, html, url, helpers);
       Logger.info("page hook executed");
     }
 
     if (Options.get("linksHook")) {
-      links = await linksHook(links, html, url, {
-        Logger,
-        Options,
-        Puppeteer,
-        JSDOM,
-        browser
-      });
+      links = await linksHook(links, html, url, helpers);
     }
 
     if (links) {
