@@ -41,6 +41,18 @@ class Options {
   static getBaseUrl() {
     return `http://localhost:${Options.get("port")}`;
   }
+
+  static getServerHook() {
+    return path.join(Options.getRoot(), Options.get("serverHook"));
+  }
+
+  static getPageHook() {
+    return path.join(Options.getRoot(), Options.get("pageHook"));
+  }
+
+  static getLinksHook() {
+    return path.join(Options.getRoot(), Options.get("linksHook"));
+  }
 }
 
 const pkgJson = require(Options.getPkgJsonPath());

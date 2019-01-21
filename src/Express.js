@@ -16,6 +16,13 @@ class Express {
       app.listen(port);
 
       Logger.info("server started on port", port);
+
+      if (Options.get("serverHook")) {
+        const serverHook = require(Options.getServerHook());
+        serverHook(app, Options);
+
+        Logger.info("server hook executed");
+      }
     }
   }
 }
