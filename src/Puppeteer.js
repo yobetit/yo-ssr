@@ -73,7 +73,13 @@ class Puppeteer {
 
       const allUrls = Object.keys(allLinks)
         .concat(Options.get("sitemapUrls"))
-        .map(link => `${prodUrl}${link}.html`)
+        .map(link => {
+          if (link[link.length - 1] === "/") {
+            link = link.slice(0, -1);
+          }
+
+          return `${prodUrl}${link}.html`;
+        })
         .join("\n");
 
       File.saveContent("/sitemap", allUrls, "txt");
