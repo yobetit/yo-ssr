@@ -71,8 +71,12 @@ class Puppeteer {
 
       const prodUrl = Options.get("prodUrl");
 
+      const sitemapUrls = Options.get("sitemapUrls").map(
+        link => `${prodUrl}${link}.html`
+      );
+
       const allUrls = Object.keys(allLinks)
-        .concat(Options.get("sitemapUrls"))
+        .concat(sitemapUrls)
         .map(link => {
           if (link[link.length - 1] === "/") {
             link = link.slice(0, -1);
