@@ -7,7 +7,7 @@ const defaultOptions = {
   waitFor: 1000,
   include: [],
   showConsole: false,
-  entry: "/",
+  entries: ["/"],
   prodUrl: "",
   sitemap: true,
   sitemapUrls: []

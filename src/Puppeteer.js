@@ -49,8 +49,12 @@ class Puppeteer {
       page.on("console", message => Logger.warning(message.text()));
     }
 
-    const entryPoint = Options.get("entry");
-    await Puppeteer.recursivelyCrawl(browser, page, `${baseurl}${entryPoint}`);
+    const entries = Options.get("entries");
+    for (let i = 0; i < entries.length; i++) {
+      const entry = entries[i];
+      await Puppeteer.recursivelyCrawl(browser, page, `${baseurl}${entry}`);
+      allLinks[entry] = true;
+    }
 
     const crawled = Object.keys(crawledUrls);
     Logger.info("total crawled urls", crawled.length);
