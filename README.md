@@ -2,6 +2,8 @@
 
 :dog: Server Side Rendering lib using [Puppeteer](https://github.com/GoogleChrome/puppeteer) to crawl a [CRA 2](https://github.com/facebook/create-react-app) builded app!
 
+#### Just add `"postbuild": "yo-ssr"` to your package.json scripts key and that's all!
+
 ## How it works?
 
 1. After the build process finishes, the **yo-ssr** starts a express server;
