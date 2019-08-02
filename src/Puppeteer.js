@@ -7,12 +7,14 @@ const Logger = require("./Logger");
 const File = require("./File");
 
 const { JSDOM } = jsdom;
-const crawledUrls = {};
-const allLinks = { "/": true };
-const waitFor = Options.get("waitFor");
+
 const baseurl = Options.getBaseUrl();
 const include = Options.get("include");
-let linksLength = 1;
+const waitFor = Options.get("waitFor");
+
+const crawledUrls = {};
+const allLinks = { "/": true };
+let linksLength = 0;
 let pageHook;
 let linksHook;
 
@@ -20,40 +22,143 @@ if (Options.get("pageHook")) pageHook = require(Options.getPageHook());
 if (Options.get("linksHook")) linksHook = require(Options.getLinksHook());
 
 class Puppeteer {
-  static async startCrawler() {
-    Logger.info("starting crawler");
+  static increaseLinksLength(value) {
+    linksLength += value;
 
-    let browser;
+    Logger.info(value, "links added, remaining", linksLength);
+  }
+
+  static async launchBrowser() {
     try {
-      browser = await puppeteer.launch({
+      return await puppeteer.launch({
         headless: true,
         args: ["--no-sandbox", "--disable-setuid-sandbox"]
       });
     } catch (error) {
       Logger.error("error on launching puppeteer", error);
-      return;
     }
+  }
 
-    let page;
+  static async launchPages(browser, numOfPages, parentIndex) {
     try {
-      page = await browser.newPage();
+      let pages = [];
+
+      for (let i = 0; i < numOfPages; i++) {
+        Logger.info("creating page", parentIndex || "", i + 1);
+
+        pages.push(browser.newPage());
+      }
+
+      pages = await Promise.all(pages);
+
+      pages = pages.map((page, index) => {
+        page.index = `${parentIndex ? parentIndex : ""} ${index + 1}`;
+        return page;
+      });
+
+      return pages;
     } catch (error) {
       Logger.error("error on opening new page", error);
     }
+  }
 
+  static async configPages(pages) {
     const viewport = Options.get("viewport");
-    if (viewport) await page.setViewport(viewport);
-    await page.setUserAgent("Yo-SSR");
 
-    if (Options.get("showConsole")) {
-      page.on("console", message => Logger.warning(message.text()));
+    if (viewport) {
+      await Promise.all(
+        pages.map(async page => {
+          return page.setViewport(viewport);
+        })
+      );
     }
 
+    await Promise.all(
+      pages.map(async page => {
+        return page.setUserAgent("Yo-SSR");
+      })
+    );
+
+    if (Options.get("showConsole")) {
+      pages.forEach(page => {
+        page.on("console", message => Logger.warning(message.text()));
+      });
+    }
+
+    await Promise.all(
+      pages.map(async page => {
+        page.on("request", request => {
+          if (
+            ["image", "stylesheet", "font"].indexOf(request.resourceType()) !==
+            -1
+          ) {
+            request.abort();
+          } else {
+            request.continue();
+          }
+        });
+
+        return await page.setRequestInterception(true);
+      })
+    );
+  }
+
+  static async setSubPages(browser, pages) {
+    const numOfSubPages = Options.get("numOfSubPages");
+
+    await Promise.all(
+      pages.map(async page => {
+        const pages = await Puppeteer.launchPages(
+          browser,
+          numOfSubPages,
+          page.index
+        );
+
+        if (!pages) {
+          page.pages = [page];
+          return;
+        }
+
+        await Puppeteer.configPages(pages);
+
+        page.pages = pages;
+      })
+    );
+  }
+
+  static async startCrawler() {
+    Logger.info("starting crawler");
+
+    const browser = await Puppeteer.launchBrowser();
+    if (!browser) return;
+
+    const numOfPages = Options.get("numOfPages");
+    const pages = await Puppeteer.launchPages(browser, numOfPages);
+    if (!pages) return;
+
+    await Puppeteer.configPages(pages);
+    await Puppeteer.setSubPages(browser, pages);
+
     const entries = Options.get("entries");
-    for (let i = 0; i < entries.length; i++) {
-      const entry = entries[i];
-      await Puppeteer.recursivelyCrawl(browser, page, `${baseurl}${entry}`);
-      allLinks[entry] = true;
+
+    Puppeteer.increaseLinksLength(entries.length);
+
+    for (let i = 0; i < entries.length; i += numOfPages) {
+      await Promise.all(
+        pages.map((page, index) => {
+          const entry = entries[i + index];
+
+          if (entry) {
+            allLinks[entry] = true;
+
+            return Puppeteer.recursivelyCrawl(
+              page,
+              `${baseurl}${entry}`,
+              page.pages
+            );
+          }
+        })
+      );
     }
 
     const crawled = Object.keys(crawledUrls);
@@ -96,8 +201,8 @@ class Puppeteer {
     }
   }
 
-  static async crawl(browser, page, url) {
-    Logger.info("going to", url);
+  static async crawl(page, url) {
+    Logger.info("going to", url, "on page", page.index);
 
     try {
       await page.goto(url, { waitUntil: "load" });
@@ -124,36 +229,33 @@ class Puppeteer {
     return { html, links };
   }
 
-  static async recursivelyCrawl(browser, page, url) {
-    let { html, links } = await Puppeteer.crawl(browser, page, url);
+  static async recursivelyCrawl(page, url, pages) {
+    let { html, links } = await Puppeteer.crawl(page, url);
 
     const helpers = {
+      pages,
+      html,
+      url,
       Logger,
       Options,
       Puppeteer,
       JSDOM,
-      browser,
       allLinks
     };
 
     if (Options.get("pageHook")) {
-      await pageHook(page, html, url, helpers);
-      Logger.info("page hook executed");
-    }
-
-    if (Options.get("linksHook")) {
-      links = await linksHook(links, html, url, helpers);
+      await pageHook(helpers);
+      Logger.info("page", page.index, "hook executed");
     }
 
     if (links) {
-      linksLength += links.length;
-      Logger.info(links.length, "links found, remaining", linksLength);
+      Puppeteer.increaseLinksLength(links.length);
 
       for (let link of links) {
         let href = link.getAttribute("href");
         href = `${baseurl}${href}`;
 
-        await Puppeteer.recursivelyCrawl(browser, page, href);
+        await Puppeteer.recursivelyCrawl(page, href, pages);
       }
     }
   }

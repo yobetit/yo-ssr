@@ -1,6 +1,6 @@
 # ![Yobetit logo](https://firebasestorage.googleapis.com/v0/b/yobetit-firebase.appspot.com/o/common%2Ftransactions%2Fyobetit-logo.png?alt=media) - Yo-SSR
 
-:dog: Server Side Rendering lib using [Puppeteer](https://github.com/GoogleChrome/puppeteer) to crawl a [CRA 2](https://github.com/facebook/create-react-app) builded app!
+:dog: Static Site Rendering lib using [Puppeteer](https://github.com/GoogleChrome/puppeteer) to crawl a [CRA](https://github.com/facebook/create-react-app) builded app!
 
 ## How it works?
 

@@ -10,7 +10,9 @@ const defaultOptions = {
   entries: ["/"],
   prodUrl: "",
   sitemap: true,
-  sitemapUrls: []
+  sitemapUrls: [],
+  numOfPages: 3,
+  numOfSubPages: 3
 };
 
 class Options {
@@ -48,10 +50,6 @@ class Options {
 
   static getPageHook() {
     return path.join(Options.getRoot(), Options.get("pageHook"));
-  }
-
-  static getLinksHook() {
-    return path.join(Options.getRoot(), Options.get("linksHook"));
   }
 }
 
