@@ -33,7 +33,7 @@
   "homepage": "https://github.com/yobetit/yo-ssr#readme",
   "dependencies": {
     "chalk": "^2.4.1",
-    "express": "^4.16.4",
+    "express": "^4.17.3",
     "fs-path": "^0.0.24",
     "jsdom": "^13.1.0",
     "prettier": "^1.15.3",
